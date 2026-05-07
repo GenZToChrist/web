@@ -1,18 +1,8 @@
-# Veritas Dashboard
+# GenZToChrist Dashboard
 
 Static GitHub Pages dashboard for Rosary sessions and Bible quiz scores.
 
 ## Configure
-
-Edit `config.js`:
-
-```js
-window.VERITAS_DASHBOARD_CONFIG = {
-  pocketBaseUrl: "https://your-pocketbase-url.example.com",
-  refreshSeconds: 60,
-};
-```
-
 The dashboard reads these PocketBase collections:
 
 - `rosary_sessions`
