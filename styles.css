@@ -80,7 +80,7 @@ h3 { font-size: 1.08rem; }
 
 .view-tabs {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -124,7 +124,6 @@ h3 { font-size: 1.08rem; }
 
 .overview-section .rosary-sessions-panel { grid-column: span 7; }
 .overview-section .rosary-leaders-panel { grid-column: span 5; grid-row: span 2; }
-.overview-section .quiz-panel { grid-column: span 4; }
 .analytics-section > .section-heading,
 .full-panel,
 .summary-cards { grid-column: 1 / -1; }
@@ -346,7 +345,6 @@ td { font-weight: 700; }
 @media (max-width: 1200px) {
   .overview-section .rosary-sessions-panel,
   .overview-section .rosary-leaders-panel,
-  .overview-section .quiz-panel,
   .two-column > .panel { grid-column: 1 / -1; }
 }
 
@@ -405,8 +403,7 @@ td { font-weight: 700; }
     "upcoming upcoming upcoming upcoming upcoming upcoming upcoming upcoming upcoming upcoming upcoming upcoming"
     "search search search search search search search search search search search search"
     "sessions sessions sessions sessions sessions sessions sessions leaders leaders leaders leaders leaders"
-    "sessions sessions sessions sessions sessions sessions sessions leaders leaders leaders leaders leaders"
-    "daily daily daily daily weekly weekly weekly weekly total total total total";
+    "sessions sessions sessions sessions sessions sessions sessions leaders leaders leaders leaders leaders";
 }
 .overview-section .upcoming-panel { grid-area: upcoming; }
 .overview-section .search-panel { grid-area: search; }
@@ -418,9 +415,6 @@ td { font-weight: 700; }
   grid-area: leaders;
   grid-row: leaders;
 }
-.overview-section .quiz-panel:nth-of-type(4) { grid-area: daily; }
-.overview-section .quiz-panel:nth-of-type(5) { grid-area: weekly; }
-.overview-section .quiz-panel:nth-of-type(6) { grid-area: total; }
 .overview-section .rosary-leaders-panel .leader-list.expanded { max-height: 680px; }
 
 .session-drilldown {
@@ -470,9 +464,7 @@ td { font-weight: 700; }
       "upcoming upcoming upcoming upcoming upcoming upcoming upcoming upcoming upcoming upcoming upcoming upcoming"
       "search search search search search search search search search search search search"
       "sessions sessions sessions sessions sessions sessions sessions leaders leaders leaders leaders leaders"
-      "sessions sessions sessions sessions sessions sessions sessions leaders leaders leaders leaders leaders"
-      "daily daily daily daily daily daily weekly weekly weekly weekly weekly weekly"
-      "total total total total total total total total total total total total";
+      "sessions sessions sessions sessions sessions sessions sessions leaders leaders leaders leaders leaders";
   }
 }
 
@@ -482,9 +474,6 @@ td { font-weight: 700; }
     "upcoming upcoming upcoming upcoming upcoming upcoming upcoming upcoming upcoming upcoming upcoming upcoming"
     "search search search search search search search search search search search search"
     "sessions sessions sessions sessions sessions sessions sessions sessions sessions sessions sessions sessions"
-    "leaders leaders leaders leaders leaders leaders leaders leaders leaders leaders leaders leaders"
-    "daily daily daily daily daily daily daily daily daily daily daily daily"
-    "weekly weekly weekly weekly weekly weekly weekly weekly weekly weekly weekly weekly"
-    "total total total total total total total total total total total total";
+    "leaders leaders leaders leaders leaders leaders leaders leaders leaders leaders leaders leaders";
   }
 }
