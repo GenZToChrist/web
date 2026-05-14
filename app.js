@@ -9,12 +9,9 @@ const dashboardState = {
   sessions: [],
   attendance: [],
   rosaryLeaders: [],
-  scores: [],
   rosaryDailyStats: [],
-  quizDailyStats: [],
   selectedRosaryDay: "",
   selectedRosarySessionId: "",
-  selectedQuizDay: "",
 };
 
 const elements = {
@@ -23,9 +20,6 @@ const elements = {
   timezoneLabel: document.querySelector("#timezone-label"),
   rosarySessions: document.querySelector("#rosary-sessions"),
   rosaryLeaders: document.querySelector("#rosary-leaders"),
-  dailyQuiz: document.querySelector("#daily-quiz"),
-  weeklyQuiz: document.querySelector("#weekly-quiz"),
-  totalQuiz: document.querySelector("#total-quiz"),
   userSearch: document.querySelector("#user-search"),
   userSearchDropdown: document.querySelector("#user-search-dropdown"),
   searchResult: document.querySelector("#search-result"),
@@ -36,12 +30,6 @@ const elements = {
   rosaryDrilldownSummary: document.querySelector("#rosary-drilldown-summary"),
   rosarySessionDrilldown: document.querySelector("#rosary-session-drilldown"),
   rosaryDrilldownTable: document.querySelector("#rosary-drilldown-table"),
-  quizSummary: document.querySelector("#quiz-summary"),
-  quizComboChart: document.querySelector("#quiz-combo-chart"),
-  quizTotalChart: document.querySelector("#quiz-total-chart"),
-  quizDrilldownTitle: document.querySelector("#quiz-drilldown-title"),
-  quizDrilldownSummary: document.querySelector("#quiz-drilldown-summary"),
-  quizDrilldownTable: document.querySelector("#quiz-drilldown-table"),
 };
 
 setTimezoneLabel();
@@ -57,29 +45,21 @@ async function loadDashboard() {
   setStatus("Refreshing");
 
   try {
-    const [sessions, attendance, scores] = await Promise.all([
+    const [sessions, attendance] = await Promise.all([
       fetchCollection("rosary_sessions", { sort: "-started_at", perPage: 200 }),
       fetchCollection("rosary_attendance", { sort: "-time_in_channel_seconds", perPage: 1000 }),
-      fetchCollection("bible_trivia_scores", { sort: "-total_points", perPage: 1000 }),
     ]);
 
-    const normalizedScores = normalizeScores(scores);
     dashboardState.sessions = sessions;
     dashboardState.attendance = attendance;
-    dashboardState.scores = normalizedScores;
     dashboardState.rosaryDailyStats = groupRosaryByLocalDay(sessions, attendance);
-    dashboardState.quizDailyStats = groupQuizByDay(normalizedScores);
 
     if (!dashboardState.selectedRosaryDay) {
       dashboardState.selectedRosaryDay = dashboardState.rosaryDailyStats.at(-1)?.key || "";
     }
-    if (!dashboardState.selectedQuizDay) {
-      dashboardState.selectedQuizDay = dashboardState.quizDailyStats.at(-1)?.key || "";
-    }
 
     renderOverview();
     renderRosaryAnalytics();
-    renderQuizAnalytics();
 
     if (elements.lastUpdated) {
       elements.lastUpdated.textContent = `Updated ${formatLocalTime(new Date())}`;
@@ -110,7 +90,6 @@ function renderOverview() {
   renderRosarySessions(dashboardState.sessions);
   dashboardState.rosaryLeaders = buildRosaryLeaders(dashboardState.sessions, dashboardState.attendance);
   renderRosaryLeaders();
-  renderQuizLeaders(dashboardState.scores);
   renderSearchResult();
 }
 
@@ -212,16 +191,6 @@ function renderRosaryLeaders() {
     (leader) => formatDuration(leader.time_in_channel_seconds),
     (leader) => `${leader.streak} streak | ${leader.sessions} sessions`,
   );
-}
-
-function renderQuizLeaders(scores) {
-  const dailyAll = scores.filter((score) => score.daily_points > 0).sort((a, b) => b.daily_points - a.daily_points);
-  const weeklyAll = scores.filter((score) => score.weekly_points > 0).sort((a, b) => b.weekly_points - a.weekly_points);
-  const totalAll = scores.filter((score) => score.total_points > 0).sort((a, b) => b.total_points - a.total_points);
-
-  renderLeaderList(elements.dailyQuiz, dailyAll.slice(0, 5), (score) => `${score.daily_points}`, () => "points today");
-  renderLeaderList(elements.weeklyQuiz, weeklyAll.slice(0, 5), (score) => `${score.weekly_points}`, () => "points this week");
-  renderLeaderList(elements.totalQuiz, totalAll.slice(0, 5), (score) => `${score.total_points}`, () => "points all time");
 }
 
 function renderRosaryAnalytics() {
@@ -358,81 +327,6 @@ function renderSessionDrilldownButtons(day, sessions, selectedSessionId) {
   });
 }
 
-function renderQuizAnalytics() {
-  const dailyStats = dashboardState.quizDailyStats;
-  const selected = dailyStats.find((day) => day.key === dashboardState.selectedQuizDay) || dailyStats.at(-1);
-  const topTotal = [...dashboardState.scores].sort((a, b) => b.total_points - a.total_points)[0];
-  const activeToday = dashboardState.scores.filter((score) => score.daily_points > 0).length;
-  const totalDistributed = sumBy(dailyStats, "points");
-  const bestDay = [...dailyStats].sort((a, b) => b.points - a.points)[0];
-
-  renderSummaryCards(elements.quizSummary, [
-    { label: "People Today", value: activeToday, sub: "Users with daily points" },
-    { label: "Points Distributed", value: totalDistributed, sub: `${dailyStats.length} day groups tracked` },
-    { label: "Best Points Day", value: bestDay ? bestDay.label : "-", sub: bestDay ? `${bestDay.points} points` : "No data yet" },
-    { label: "Top All-Time Player", value: topTotal?.display_name || "-", sub: topTotal ? `${topTotal.total_points} points` : "No scores yet" },
-  ]);
-
-  renderDualAxisChart(elements.quizComboChart, dailyStats.slice(-30), {
-    selectedKey: selected?.key || "",
-    leftLabel: "People",
-    rightLabel: "Points",
-    leftValue: (day) => day.players,
-    rightValue: (day) => day.points,
-    leftText: (value) => `${value} people`,
-    rightText: (value) => `${value} pts`,
-    onSelect: (key) => {
-      dashboardState.selectedQuizDay = key;
-      renderQuizAnalytics();
-    },
-  });
-
-  renderBarChart(
-    elements.quizTotalChart,
-    [...dashboardState.scores]
-      .filter((score) => score.total_points > 0)
-      .sort((a, b) => b.total_points - a.total_points)
-      .slice(0, MAX_CHART_ROWS)
-      .map((score) => ({ label: score.display_name, value: score.total_points, valueLabel: `${score.total_points} pts` })),
-    "No Bible quiz scores yet.",
-  );
-
-  renderQuizDrilldown(selected);
-}
-
-function renderQuizDrilldown(day) {
-  if (!day) {
-    elements.quizDrilldownTitle.textContent = "No Quiz Day Selected";
-    elements.quizDrilldownSummary.innerHTML = "";
-    elements.quizDrilldownTable.innerHTML = '<tr><td colspan="3" class="empty">No quiz data yet.</td></tr>';
-    return;
-  }
-
-  elements.quizDrilldownTitle.textContent = day.label;
-  renderDrilldownStats(elements.quizDrilldownSummary, [
-    { label: "People", value: day.players },
-    { label: "Points", value: day.points },
-    { label: "Avg Points", value: day.players ? Math.round(day.points / day.players) : 0 },
-  ]);
-
-  const rows = day.rows.length
-    ? day.rows
-        .sort((a, b) => b.daily_points - a.daily_points)
-        .map(
-          (row) => `
-            <tr>
-              <td>${escapeHtml(row.display_name || row.username || row.user_id || "Unknown")}</td>
-              <td>${Number(row.daily_points || 0)}</td>
-              <td>${Number(row.total_points || 0)}</td>
-            </tr>
-          `,
-        )
-        .join("")
-    : '<tr><td colspan="3" class="empty">No users found for this day.</td></tr>';
-
-  elements.quizDrilldownTable.innerHTML = rows;
-}
-
 function groupRosaryByLocalDay(sessions, attendance) {
   const sessionById = new Map(sessions.map((session) => [String(session.id), session]));
   const byDay = new Map();
@@ -476,55 +370,6 @@ function makeRosaryDay(key, date) {
     sessions: [],
     attendanceRows: [],
   };
-}
-
-function groupQuizByDay(scores) {
-  const byDay = new Map();
-
-  for (const score of scores) {
-    const key = score.day_key || getLocalDateKey(score.updated || score.created || new Date());
-    if (!key) continue;
-    const date = localDateFromKey(key);
-    const current = byDay.get(key) || { key, label: formatLocalShortDate(date), players: 0, points: 0, rows: [] };
-
-    const points = Number(score.raw_daily_points || score.daily_points || 0);
-    if (points > 0) {
-      current.players += 1;
-      current.points += points;
-      current.rows.push({ ...score, daily_points: points });
-    }
-
-    byDay.set(key, current);
-  }
-
-  return [...byDay.values()].filter((day) => day.players > 0 || day.points > 0).sort((a, b) => a.key.localeCompare(b.key));
-}
-
-function normalizeScores(scores) {
-  const today = getLocalDateKey(new Date());
-  const weekStart = getLocalWeekStartKey(new Date());
-
-  return scores.map((score) => {
-    const dayKey = normalizeDateKey(score.day_start_date || score.created || score.updated);
-    const weekKey = normalizeDateKey(score.week_start_date);
-    const rawDailyPoints = Number(score.daily_points || 0);
-    const rawWeeklyPoints = Number(score.weekly_points || 0);
-
-    return {
-      user_id: String(score.user_id || ""),
-      display_name: score.display_name || score.username || "Unknown",
-      username: score.username || "",
-      total_points: Number(score.total_points || 0),
-      daily_points: dayKey === today ? rawDailyPoints : 0,
-      weekly_points: weekKey === weekStart ? rawWeeklyPoints : 0,
-      raw_daily_points: rawDailyPoints,
-      raw_weekly_points: rawWeeklyPoints,
-      day_key: dayKey,
-      week_key: weekKey,
-      created: score.created,
-      updated: score.updated,
-    };
-  });
 }
 
 function renderDualAxisChart(container, rows, options) {
@@ -674,7 +519,7 @@ function renderLeaderList(container, entries, pointsText, subText) {
   if (!container) return;
 
   if (!entries.length) {
-    container.innerHTML = '<li class="empty">No scores yet.</li>';
+    container.innerHTML = '<li class="empty">No Rosary attendance yet.</li>';
     return;
   }
 
@@ -706,24 +551,7 @@ function getSearchableUsers() {
       display_name: leader.display_name || leader.username || leader.user_id || "Unknown",
       username: leader.username || "",
       rosary: leader,
-      quiz: null,
     });
-  }
-
-  for (const score of dashboardState.scores) {
-    const key = score.user_id || score.display_name;
-    if (!key) continue;
-    const existing = users.get(String(key)) || {
-      user_id: score.user_id || "",
-      display_name: score.display_name || score.username || score.user_id || "Unknown",
-      username: score.username || "",
-      rosary: null,
-      quiz: null,
-    };
-    existing.display_name = existing.display_name || score.display_name || "Unknown";
-    existing.username = existing.username || score.username || "";
-    existing.quiz = score;
-    users.set(String(key), existing);
   }
 
   return [...users.values()].sort((a, b) =>
@@ -785,8 +613,7 @@ function buildSearchOptionSubtext(user) {
   const rosary = user.rosary
     ? `${user.rosary.streak} streak, ${user.rosary.sessions} Rosary sessions`
     : "No Rosary attendance";
-  const quiz = user.quiz ? `${user.quiz.total_points} quiz points` : "No quiz score";
-  return `${rosary} | ${quiz}`;
+  return rosary;
 }
 
 function renderSearchResult() {
@@ -794,7 +621,7 @@ function renderSearchResult() {
 
   const query = elements.userSearch?.value || "";
   if (!query.trim()) {
-    elements.searchResult.textContent = "Type a name, then click a user to view their Rosary and Bible Quiz stats.";
+    elements.searchResult.textContent = "Type a name, then click a user to view their Rosary stats.";
     if (elements.userSearchDropdown) elements.userSearchDropdown.hidden = true;
     return;
   }
@@ -814,19 +641,13 @@ function renderSelectedUserStats(user) {
   const rosaryText = user.rosary
     ? `Rosary: ${formatDuration(user.rosary.time_in_channel_seconds)}, ${user.rosary.sessions} sessions, ${user.rosary.streak} streak`
     : "Rosary: no attendance found";
-  const quizText = user.quiz
-    ? `Bible Quiz: ${user.quiz.daily_points} daily, ${user.quiz.weekly_points} weekly, ${user.quiz.total_points} all time`
-    : "Bible Quiz: no score found";
 
-  elements.searchResult.innerHTML = `<strong>${escapeHtml(user.display_name || "Unknown")}</strong> | ${escapeHtml(rosaryText)} | ${escapeHtml(quizText)}`;
+  elements.searchResult.innerHTML = `<strong>${escapeHtml(user.display_name || "Unknown")}</strong> | ${escapeHtml(rosaryText)}`;
 }
 
 function renderEmptyState() {
   elements.rosarySessions.innerHTML = '<tr><td colspan="3" class="error">Set your PocketBase URL in config.js.</td></tr>';
   elements.rosaryLeaders.innerHTML = '<li class="error">Waiting for config.</li>';
-  elements.dailyQuiz.innerHTML = '<li class="error">Waiting for config.</li>';
-  elements.weeklyQuiz.innerHTML = '<li class="error">Waiting for config.</li>';
-  elements.totalQuiz.innerHTML = '<li class="error">Waiting for config.</li>';
 }
 
 function getRelationId(value) {
