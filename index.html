@@ -23,7 +23,6 @@
       <nav class="view-tabs" aria-label="Dashboard views">
         <button class="view-tab active" type="button" data-view="overview">Overview</button>
         <button class="view-tab" type="button" data-view="rosary">Rosary Analytics</button>
-        <button class="view-tab" type="button" data-view="quiz">Bible Quiz Analytics</button>
       </nav>
 
       <section class="view-section overview-section" data-view-section="overview">
@@ -46,7 +45,7 @@
             <input id="user-search" type="search" placeholder="Start typing a name or Discord ID" autocomplete="off" />
             <div class="search-dropdown" id="user-search-dropdown" role="listbox" hidden></div>
           </div>
-          <div class="search-result" id="search-result">Type a name, then click a user to view their Rosary and Bible Quiz stats.</div>
+          <div class="search-result" id="search-result">Type a name, then click a user to view their Rosary stats.</div>
         </section>
 
         <section class="panel rosary-sessions-panel">
@@ -80,36 +79,6 @@
             </div>
           </div>
           <ol class="leader-list expanded" id="rosary-leaders"></ol>
-        </section>
-
-        <section class="panel quiz-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Bible Quiz</p>
-              <h2>Daily Top 5</h2>
-            </div>
-          </div>
-          <ol class="leader-list" id="daily-quiz"></ol>
-        </section>
-
-        <section class="panel quiz-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Bible Quiz</p>
-              <h2>Weekly Top 5</h2>
-            </div>
-          </div>
-          <ol class="leader-list" id="weekly-quiz"></ol>
-        </section>
-
-        <section class="panel quiz-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Bible Quiz</p>
-              <h2>All Time Top 5</h2>
-            </div>
-          </div>
-          <ol class="leader-list" id="total-quiz"></ol>
         </section>
       </section>
 
@@ -165,63 +134,6 @@
                   </tr>
                 </thead>
                 <tbody id="rosary-drilldown-table"></tbody>
-              </table>
-            </div>
-          </article>
-        </section>
-      </section>
-
-      <section class="view-section analytics-section" data-view-section="quiz" hidden>
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Bible Quiz Analytics</p>
-            <h2>In-depth quiz activity</h2>
-            <p class="panel-note">Click a date in the chart to drill down into that quiz day.</p>
-          </div>
-        </div>
-
-        <section class="summary-cards" id="quiz-summary"></section>
-
-        <section class="panel chart-panel full-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Daily Trend</p>
-              <h2>Quiz Participants and Points by Day</h2>
-              <p class="panel-note">X-axis is day. Left Y-axis is people who did the quiz. Right Y-axis is points distributed.</p>
-            </div>
-          </div>
-          <div class="combo-chart" id="quiz-combo-chart"></div>
-        </section>
-
-        <section class="analytics-grid two-column">
-          <article class="panel chart-panel">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow">Leaderboard</p>
-                <h2>All-Time Points</h2>
-              </div>
-            </div>
-            <div class="bar-chart" id="quiz-total-chart"></div>
-          </article>
-
-          <article class="panel drilldown-panel">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow">Drilldown</p>
-                <h2 id="quiz-drilldown-title">Latest Quiz Day</h2>
-              </div>
-            </div>
-            <div class="drilldown-summary" id="quiz-drilldown-summary"></div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>User</th>
-                    <th>Daily Points</th>
-                    <th>Total Points</th>
-                  </tr>
-                </thead>
-                <tbody id="quiz-drilldown-table"></tbody>
               </table>
             </div>
           </article>
