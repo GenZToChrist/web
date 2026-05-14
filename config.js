@@ -1,4 +1,4 @@
 window.VERITAS_DASHBOARD_CONFIG = {
-  pocketBaseUrl: "https://genztochrist.pockethost.io",
+  pocketBaseUrl: "http://143.244.165.102:8090",
   refreshSeconds: 60,
 };
